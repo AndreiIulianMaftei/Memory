@@ -41,7 +41,7 @@ int sc_main(int argc, char* argv[]) {
   }
 
   TINY_RISC cpu("cpu", initialMemory, 10);
-  //tsfsd
+  //tsfsd  
   sc_signal<bool> reset;
   cpu.reset(reset);
   reset.write(false);
