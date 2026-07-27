@@ -21,7 +21,7 @@ SC_MODULE(MAIN_MEMORY) {
   std::map<uint32_t, uint8_t> memory;
 
   SC_CTOR(MAIN_MEMORY) {
-    SC_THREAD(behaviour);
+    SC_THREAD(behaviour);  
     sensitive << clk.pos();
   }
 

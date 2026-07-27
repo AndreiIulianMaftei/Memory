@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+  <defs>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="5" stdDeviation="7" flood-color="#17245b" flood-opacity="0.10"/>
+    </filter>
+    <style>
+      .title { font-family: Georgia, 'Times New Roman', serif; font-size: 49px; font-weight: 700; fill: #202c67; }
+      .subtitle { font-family: Arial, Helvetica, sans-serif; font-size: 21px; font-style: italic; fill: #626979; }
+      .owner { font-family: Arial, Helvetica, sans-serif; font-size: 18px; font-weight: 700; fill: #00bea0; }
+      .card-title { font-family: Arial, Helvetica, sans-serif; font-size: 21px; font-weight: 700; fill: #202c67; }
+      .number { font-family: Arial, Helvetica, sans-serif; font-size: 17px; font-weight: 700; fill: white; text-anchor: middle; }
+      .code { font-family: 'DejaVu Sans Mono', Consolas, monospace; font-size: 14.5px; fill: #eef4ff; }
+      .kw { fill: #5de1c2; font-weight: 700; }
+      .num { fill: #ffc857; }
+      .fn { fill: #9ccaff; }
+      .why { font-family: Arial, Helvetica, sans-serif; font-size: 15px; fill: #4e566b; }
+      .why-strong { font-weight: 700; fill: #202c67; }
+      .footer { font-family: Arial, Helvetica, sans-serif; font-size: 14px; fill: #596178; }
+      .takeaway { font-family: Arial, Helvetica, sans-serif; font-size: 17px; font-weight: 700; fill: #202c67; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="900" fill="#ffffff"/>
+
+  <!-- Deck-style header mark -->
+  <g fill="#00bea0">
+    <rect x="66" y="66" width="21" height="21" rx="4"/>
+    <rect x="95" y="66" width="21" height="21" rx="4"/>
+    <rect x="66" y="95" width="21" height="21" rx="4"/>
+    <rect x="95" y="95" width="21" height="21" rx="4"/>
+  </g>
+  <text class="title" x="139" y="104">Implementation — Smart Choices</text>
+  <text class="subtitle" x="139" y="144">Six compact patterns that keep the controller safe, correct, and timing-aware</text>
+
+  <rect x="1300" y="58" width="240" height="52" rx="12" fill="#202c67" stroke="#00bea0" stroke-width="2"/>
+  <text class="owner" x="1420" y="91" text-anchor="middle">Andrei</text>
+
+  <!-- Card 1 -->
+  <g filter="url(#shadow)">
+    <rect x="66" y="188" width="468" height="276" rx="16" fill="#f2f5fa"/>
+    <circle cx="101" cy="224" r="19" fill="#00bea0"/>
+    <text class="number" x="101" y="230">1</text>
+    <text class="card-title" x="132" y="231">Boundary-safe routing</text>
+    <rect x="88" y="253" width="424" height="145" rx="10" fill="#17245b"/>
+    <text class="code" x="105" y="280" xml:space="preserve">
+      <tspan class="kw">if</tspan><tspan> (</tspan><tspan class="fn">rangeOverflows</tspan><tspan>(addr, bytes))</tspan>
+      <tspan x="121" dy="23" class="kw">return</tspan><tspan> false;</tspan>
+      <tspan x="105" dy="25">bool first = </tspan><tspan class="fn">isRomAddress</tspan><tspan>(addr);</tspan>
+      <tspan x="105" dy="23">bool last = </tspan><tspan class="fn">isRomAddress</tspan><tspan>(addr + bytes - </tspan><tspan class="num">1</tspan><tspan>);</tspan>
+      <tspan x="105" dy="23" class="kw">return</tspan><tspan> first == last;</tspan>
+    </text>
+    <text class="why" x="90" y="430" xml:space="preserve"><tspan class="why-strong">Reject early:</tspan><tspan> overflow and ROM/RAM-crossing requests.</tspan></text>
+  </g>
+
+  <!-- Card 2 -->
+  <g filter="url(#shadow)">
+    <rect x="566" y="188" width="468" height="276" rx="16" fill="#f2f5fa"/>
+    <circle cx="601" cy="224" r="19" fill="#00bea0"/>
+    <text class="number" x="601" y="230">2</text>
+    <text class="card-title" x="632" y="231">Per-byte protection</text>
+    <rect x="588" y="253" width="424" height="145" rx="10" fill="#17245b"/>
+    <text class="code" x="605" y="280" xml:space="preserve">
+      <tspan class="kw">for</tspan><tspan> (uint32_t i = </tspan><tspan class="num">0</tspan><tspan>; i &lt; bytes; ++i) {</tspan>
+      <tspan x="621" dy="24">uint8_t owner = </tspan><tspan class="fn">getOwner</tspan><tspan>(addr + i);</tspan>
+      <tspan x="621" dy="24" class="kw">if</tspan><tspan> (owner != </tspan><tspan class="num">255</tspan><tspan> &amp;&amp;</tspan>
+      <tspan x="653" dy="22">owner != user) </tspan><tspan class="kw">return</tspan><tspan> false;</tspan>
+      <tspan x="605" dy="24">}</tspan>
+    </text>
+    <text class="why" x="590" y="430" xml:space="preserve"><tspan class="why-strong">Correct at edges:</tspan><tspan> wide accesses may touch two blocks.</tspan></text>
+  </g>
+
+  <!-- Card 3 -->
+  <g filter="url(#shadow)">
+    <rect x="1066" y="188" width="468" height="276" rx="16" fill="#f2f5fa"/>
+    <circle cx="1101" cy="224" r="19" fill="#00bea0"/>
+    <text class="number" x="1101" y="230">3</text>
+    <text class="card-title" x="1132" y="231">Read–modify–write</text>
+    <rect x="1088" y="253" width="424" height="145" rx="10" fill="#17245b"/>
+    <text class="code" x="1105" y="280" xml:space="preserve">
+      <tspan>uint32_t old = </tspan><tspan class="fn">memoryRead</tspan><tspan>(addr);</tspan>
+      <tspan x="1105" dy="27">uint32_t next =</tspan>
+      <tspan x="1121" dy="25">(old &amp; </tspan><tspan class="num">0xFFFFFF00u</tspan><tspan>) |</tspan>
+      <tspan x="1121" dy="23">(data &amp; </tspan><tspan class="num">0xFFu</tspan><tspan>);</tspan>
+      <tspan x="1105" dy="25" class="fn">memoryWrite</tspan><tspan>(addr, next);</tspan>
+    </text>
+    <text class="why" x="1090" y="430" xml:space="preserve"><tspan class="why-strong">Preserve data:</tspan><tspan> change one byte, keep the other three.</tspan></text>
+  </g>
+
+  <!-- Card 4 -->
+  <g filter="url(#shadow)">
+    <rect x="66" y="493" width="468" height="276" rx="16" fill="#f2f5fa"/>
+    <circle cx="101" cy="529" r="19" fill="#00bea0"/>
+    <text class="number" x="101" y="535">4</text>
+    <text class="card-title" x="132" y="536">Latency-independent handshake</text>
+    <rect x="88" y="558" width="424" height="145" rx="10" fill="#17245b"/>
+    <text class="code" x="105" y="585" xml:space="preserve">
+      <tspan>mem_r.</tspan><tspan class="fn">write</tspan><tspan>(true);</tspan>
+      <tspan x="105" dy="27" class="kw">do</tspan><tspan> {</tspan>
+      <tspan x="121" dy="24" class="fn">wait</tspan><tspan>();</tspan>
+      <tspan x="121" dy="24" class="fn">wait</tspan><tspan>(SC_ZERO_TIME);</tspan>
+      <tspan x="105" dy="24">} </tspan><tspan class="kw">while</tspan><tspan> (!mem_ready.</tspan><tspan class="fn">read</tspan><tspan>());</tspan>
+    </text>
+    <text class="why" x="90" y="735" xml:space="preserve"><tspan class="why-strong">Protocol-driven:</tspan><tspan> wait for ready, not a guessed latency.</tspan></text>
+  </g>
+
+  <!-- Card 5 -->
+  <g filter="url(#shadow)">
+    <rect x="566" y="493" width="468" height="276" rx="16" fill="#f2f5fa"/>
+    <circle cx="601" cy="529" r="19" fill="#00bea0"/>
+    <text class="number" x="601" y="535">5</text>
+    <text class="card-title" x="632" y="536">Zero-latency ROM</text>
+    <rect x="588" y="558" width="424" height="145" rx="10" fill="#17245b"/>
+    <text class="code" x="605" y="585" xml:space="preserve">
+      <tspan class="kw">for</tspan><tspan> (uint32_t i = </tspan><tspan class="num">0</tspan><tspan>;</tspan>
+      <tspan x="637" dy="23">i &lt; latencyRom; ++i)</tspan>
+      <tspan x="621" dy="24" class="fn">wait</tspan><tspan>();</tspan>
+      <tspan x="605" dy="27">rdata.</tspan><tspan class="fn">write</tspan><tspan>(</tspan><tspan class="fn">romRead</tspan><tspan>(addr, wide));</tspan>
+      <tspan x="605" dy="24" class="fn">finishSuccess</tspan><tspan>();</tspan>
+    </text>
+    <text class="why" x="590" y="735" xml:space="preserve"><tspan class="why-strong">No special case:</tspan><tspan> latency 0 simply performs no wait.</tspan></text>
+  </g>
+
+  <!-- Card 6 -->
+  <g filter="url(#shadow)">
+    <rect x="1066" y="493" width="468" height="276" rx="16" fill="#f2f5fa"/>
+    <circle cx="1101" cy="529" r="19" fill="#00bea0"/>
+    <text class="number" x="1101" y="535">6</text>
+    <text class="card-title" x="1132" y="536">Little-endian byte storage</text>
+    <rect x="1088" y="558" width="424" height="145" rx="10" fill="#17245b"/>
+    <text class="code" x="1105" y="585" xml:space="preserve">
+      <tspan>uint8_t value =</tspan>
+      <tspan x="1121" dy="27">it == memory.end() ? </tspan><tspan class="num">0</tspan><tspan> : it-&gt;second;</tspan>
+      <tspan x="1105" dy="29">result |= static_cast&lt;uint32_t&gt;(value)</tspan>
+      <tspan x="1170" dy="27">&lt;&lt; (i * </tspan><tspan class="num">8</tspan><tspan>);</tspan>
+    </text>
+    <text class="why" x="1090" y="735" xml:space="preserve"><tspan class="why-strong">Byte-addressable:</tspan><tspan> naturally supports unaligned access.</tspan></text>
+  </g>
+
+  <!-- Bottom takeaway and footer -->
+  <rect x="66" y="798" width="1468" height="45" rx="11" fill="#e7faf6"/>
+  <text class="takeaway" x="800" y="827" text-anchor="middle">Validate early · protect every touched byte · preserve untouched data · synchronize through signals</text>
+
+  <text class="footer" x="60" y="878">Memory Controller — GRA Final Presentation</text>
+  <text class="footer" x="1540" y="878" text-anchor="end">Implementation</text>
+</svg>

@@ -1,0 +1,55 @@
+@startuml
+title Memory Request Processing
+
+left to right direction
+
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam linetype ortho
+skinparam nodesep 30
+skinparam ranksep 45
+skinparam defaultFontSize 14
+skinparam ArrowColor #455A64
+skinparam ArrowThickness 1.5
+skinparam rectangle {
+    BorderColor #455A64
+    BackgroundColor #F7F9FA
+    RoundCorner 10
+}
+
+rectangle "1. Sample request\naddr, wdata, r/w,\nwide, user" as Sample #E8F5E9
+rectangle "2. Start request\nready = 0\nerror = 0" as Begin #E3F2FD
+rectangle "Valid operation,\naddress range and\nROM/RAM boundary?" as Valid #FFF8E1
+rectangle "Address\nin ROM?" as Region #FFF8E1
+
+rectangle "Permission for every\naccessed byte/block?" as Permission #FFF8E1
+rectangle "Update ownership\nuser 255: release\nwrite: assign user" as Ownership #E3F2FD
+rectangle "Width adaptation\n4-byte: forward\n1-byte read: LSB\n1-byte write: RMW" as Width #E3F2FD
+rectangle "Drive mem_*\nand wait for\nmem_ready" as MainMemory #ECEFF1
+
+rectangle "ROM\nwrite?" as RomWrite #FFF8E1
+rectangle "Wait latencyRom cycles\n0 = same clock edge" as RomLatency #EDE7F6
+rectangle "Read 1 or 4 bytes\nfrom internal ROM\n(little-endian)" as RomRead #EDE7F6
+
+rectangle "Success\nready = 1, error = 0\nrdata for reads" as Success #E8F5E9
+rectangle "Access error\nready = 1, error = 1\nno memory access" as Error #FFEBEE
+
+Sample --> Begin
+Begin --> Valid
+Valid --> Region : yes
+Region --> Permission : RAM
+Permission --> Ownership : yes
+Ownership --> Width
+Width --> MainMemory
+MainMemory --> Success
+
+Valid -down-> Error : no
+Permission -down-> Error : no
+
+Region -down-> RomWrite : ROM
+RomWrite --> RomLatency : no — read
+RomLatency --> RomRead
+RomRead --> Success
+RomWrite -down-> Error : yes
+
+@enduml

@@ -1,0 +1,127 @@
+@startuml
+title Memory Controller — Project Architecture
+
+top to bottom direction
+
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+skinparam nodesep 45
+skinparam ranksep 55
+skinparam ArrowColor #455A64
+skinparam ClassBorderColor #455A64
+skinparam ClassBackgroundColor #F7F9FA
+skinparam PackageBorderColor #90A4AE
+
+package "C Framework" as CFramework #E8F5E9 {
+    together {
+        class CSVParser {
+            + load_requests_csv(path, requests, count)
+        }
+
+        class "main()" as Main {
+            CLI parsing
+            Option validation
+            Result output
+        }
+
+        class ROMLoader {
+            + load_rom_file(path, romSize, romContent)
+        }
+    }
+
+    together {
+        class Request <<struct>> {
+            + addr: uint32_t
+            + data: uint32_t
+            + w: uint8_t
+            + user: uint8_t
+            + wide: uint8_t
+        }
+
+        class "runSimulation()" as Simulation {
+            + cycles: uint32_t
+            + tracefile: const char*
+            + requests: Request*
+            + returns Result
+        }
+
+        class Result <<struct>> {
+            + cycles: uint32_t
+            + errors: uint32_t
+        }
+    }
+
+    CSVParser -[hidden]right- Main
+    Main -[hidden]right- ROMLoader
+    Request -[hidden]right- Simulation
+    Simulation -[hidden]right- Result
+
+    CSVParser -[hidden]down- Request
+    Main -[hidden]down- Simulation
+    ROMLoader -[hidden]down- Result
+}
+
+package "SystemC Simulation" as SystemCSimulation #E3F2FD {
+    class MEMORY_SYSTEM <<SC_MODULE>> {
+        + clk: sc_clock
+        + controller: MEMORY_CONTROLLER
+        + memory: MAIN_MEMORY
+    }
+
+    class MEMORY_CONTROLLER <<SC_MODULE>> {
+        Inputs:
+        clk, addr, wdata
+        r, w, wide, user
+        mem_ready, mem_rdata
+        --
+        Outputs:
+        rdata, ready, error
+        mem_addr, mem_wdata
+        mem_r, mem_w
+        --
+        + getOwner(address): uint8_t
+        + setRomAt(address, data): void
+        --
+        ROM storage
+        Ownership table
+        Permission checking
+        Width adaptation
+    }
+
+    class MAIN_MEMORY <<SC_MODULE>> {
+        + addr: sc_in<uint32_t>
+        + wdata: sc_in<uint32_t>
+        + r, w: sc_in<bool>
+        + rdata: sc_out<uint32_t>
+        + ready: sc_out<bool>
+        --
+        Byte-addressable storage
+    }
+
+    MEMORY_CONTROLLER -[hidden]right- MAIN_MEMORY
+}
+
+Main -left-> CSVParser : loads requests
+Main -right-> ROMLoader : loads ROM contents
+Main -down-> Simulation : calls
+CSVParser -down-> Request : creates
+Simulation -right-> Result : returns
+ROMLoader -[hidden]right-> MEMORY_SYSTEM
+Simulation -[norank]-> MEMORY_SYSTEM : constructs
+
+MEMORY_SYSTEM *-down- MEMORY_CONTROLLER
+MEMORY_SYSTEM *-down- MAIN_MEMORY
+
+MEMORY_CONTROLLER -right-> MAIN_MEMORY : memory request
+MAIN_MEMORY -left-> MEMORY_CONTROLLER : ready / read data
+
+note bottom of MEMORY_CONTROLLER
+  Memory mapping
+  Memory protection
+  Data-width adaptation
+end note
+
+@enduml
