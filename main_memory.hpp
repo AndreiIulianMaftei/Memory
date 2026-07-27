@@ -25,7 +25,7 @@ SC_MODULE(MAIN_MEMORY) {
     sensitive << clk.pos();
   }
 
-  void behaviour() {
+  void behaviour() { 
     while(true) {
       wait();
 
